@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Dashboard</h1>
+    {% if error_message %}<div class="alert alert-danger">{{ error_message }}</div>{% endif %}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    {% for account_data in account_data_list %}
+        <h2>Account Number: {{ account_data.account_number }}</h2>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Unrealized P/L</h5>
+                        <p class="card-text fs-4" id="unrealized_pl_{{ account_data.account_number }}" style="color: {{ account_data.unrealized_pl_color }};">{{ account_data.unrealized_pl }} USD</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Balance</h5>
+                        <p class="card-text fs-4" id="balance_{{ account_data.account_number }}">{{ account_data.balance }} USD</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Equity</h5>
+                        <p class="card-text fs-4" id="equity_{{ account_data.account_number }}">{{ account_data.equity }} USD</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Drawdown</h5>
+                        <p class="card-text fs-4" id="drawdown_{{ account_data.account_number }}" style="color: {{ account_data.drawdown_color }};">{{ account_data.drawdown }}%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Margin Percentage</h5>
+                        <p class="card-text fs-4">{{ account_data.margin_percentage }}%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <h3 class="mb-4">Open Orders for Account {{ account_data.account_number }}</h3>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Ticket</th>
+                    <th>Symbol</th>
+                    <th>Type</th>
+                    <th>Volume</th>
+                    <th>Open Price</th>
+                    <th>Open Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in account_data.open_orders %}
+                    <tr>
+                        <td>{{ order.ticket }}</td>
+                        <td>{{ order.symbol }}</td>
+                        <td>{{ order.type }}</td>
+                        <td>{{ order.volume }}</td>
+                        <td>{{ order.open_price }}</td>
+                        <td>{{ order.open_time }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="mt-4">
+            <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+            {{ account_data.chart_div|safe }}
+        </div>
+        <hr>
+    {% empty %}
+        <div class="alert alert-info">No data available.</div>
+    {% endfor %}
+</div>
+
+<script>
+    // Update dashboard data for each account every 5 seconds
+    setTimeout(function() {
+        {% for account_data in account_data_list %}
+            updateDashboardData("{{ account_data.account_number }}");
+        {% endfor %}
+        setInterval(function() {
+            {% for account_data in account_data_list %}
+                updateDashboardData("{{ account_data.account_number }}");
+            {% endfor %}
+        }, 5000);
+    }, 1000);
+    
+    function updateDashboardData(accountNumber) {
+        console.log('Updating dashboard data for account ', accountNumber);
+        fetch("{% url 'get_dashboard_data' %}" + "?account_number=" + accountNumber, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Received data for account", accountNumber, ":", data);
+            document.getElementById('balance_' + accountNumber).textContent = data.balance + ' USD';
+            document.getElementById('equity_' + accountNumber).textContent = data.equity + ' USD';
+            document.getElementById('unrealized_pl_' + accountNumber).textContent = data.unrealized_pl + ' USD';
+            document.getElementById('unrealized_pl_' + accountNumber).style.color = data.unrealized_pl < 0 ? 'red' : 'green';
+            document.getElementById('drawdown_' + accountNumber).textContent = data.drawdown + '%';
+            document.getElementById('drawdown_' + accountNumber).style.color = data.drawdown < 0 ? 'red' : 'green';
+        })
+        .catch(error => console.error("Error fetching dashboard data for account", accountNumber, ":", error));
+    }
+</script>
+{% endblock %}
