@@ -24,9 +24,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'django-insecure-_z(bc&m1(!i^5ex4%+vhfj6zwd!tyask_2pg*mr3$nu!miu9@d'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['farmbot-trade.com', 'www.farmbot-trade.com', '127.0.0.1']
+ALLOWED_HOSTS = ['farmbot-trade.com', 'www.farmbot-trade.com']
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://farmbot-trade.com:8888',
+    'https://www.farmbot-trade.com:8888'
+]
 
 
 # Application definition
@@ -127,7 +132,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/login/'
-CSRF_TRUSTED_ORIGINS = ['https://farmbot-trade.com:8888', 'https://www.farmbot-trade.com']
+
+
 
 CELERY_BROKER_URL = 'redis://redis:6379/0'
 CELERY_RESULT_BACKEND = 'django-db'
@@ -135,7 +141,25 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django.security.csrf': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
+
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
