@@ -26,12 +26,11 @@ SECRET_KEY = 'django-insecure-_z(bc&m1(!i^5ex4%+vhfj6zwd!tyask_2pg*mr3$nu!miu9@d
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['farmbot-trade.com', 'www.farmbot-trade.com']
-
 CSRF_TRUSTED_ORIGINS = [
-    'https://farmbot-trade.com:8888',
-    'https://www.farmbot-trade.com:8888'
+    'https://farmbot-trade.com:8888', 'https://www.farmbot-trade.com:8888'
 ]
+
+ALLOWED_HOSTS = ['farmbot-trade.com', 'www.farmbot-trade.com']
 
 
 # Application definition
